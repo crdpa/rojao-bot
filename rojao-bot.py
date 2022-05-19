@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
-import re
-import praw
 import configparser
+import praw
+import re
+import traceback
+from time import sleep
 
 
 def config_read(file):
@@ -30,6 +32,7 @@ def check_condition(comment):
 
 def main():
     sub_name = 'bottesting'
+    reply_text = 'Eu \U0001F389 fico \U0001F9E8 muito triste \U0001F602 com uma notícia dessas! \U0001F9E8 \U0001F38A'
     cache = []
 
     user_agent, id, secret, username, password = config_read('secrets.ini')
@@ -42,16 +45,21 @@ def main():
     )
 
     while True:
-        subreddit = bot.subreddit(sub_name)
-        comments = subreddit.comments(limit=1000)
-        for comment in comments:
-            if comment.id in cache:
-                break
+        try:
+            subreddit = bot.subreddit(sub_name)
+            comments = subreddit.comments(limit=1000)
+            for comment in comments:
+                if comment.id in cache:
+                    break
 
-            cache.append(comment.id)
-            condition = check_condition(comment)
-            if condition:
-                comment.reply("Eu \U0001F389 fico \U0001F9E8 muito triste \U0001F602 com uma notícia dessas! \U0001F9E8 \U0001F38A")
+                cache.append(comment.id)
+                condition = check_condition(comment)
+                if condition:
+                    comment.reply(reply_text)
+        except Exception:
+            traceback.print_exc()
+            print("Sleeping for 60 seconds.")
+            sleep(60)
 
 
 if __name__ == "__main__":
